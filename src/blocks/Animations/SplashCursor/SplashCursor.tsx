@@ -899,6 +899,11 @@ export default function SplashCursor({
       if (!rgba) {
         throw new Error('formatRGBA is null. WebGL format not supported.');
       }
+      // Fallback for rg
+      const rgSafe = rg ?? rgba;
+      if (!rgSafe) {
+        throw new Error('formatRG and formatRGBA are both null. WebGL format not supported.');
+      }
 
       if (!dye) {
         dye = createDoubleFBO(
@@ -925,8 +930,8 @@ export default function SplashCursor({
         velocity = createDoubleFBO(
           simRes.width,
           simRes.height,
-          rg.internalFormat,
-          rg.format,
+          rgSafe.internalFormat,
+          rgSafe.format,
           texType,
           filtering,
         );
@@ -935,8 +940,8 @@ export default function SplashCursor({
           velocity,
           simRes.width,
           simRes.height,
-          rg.internalFormat,
-          rg.format,
+          rgSafe.internalFormat,
+          rgSafe.format,
           texType,
           filtering,
         );
