@@ -162,6 +162,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
 
   const saveEditCategory = async () => {
     setModalState(prev => ({ ...prev, saving: true }));
+    if (!editState.category) return;
     await skillsAPI.update(editState.category.id, {
       title: editState.categoryTitle,
       skills: editState.skills,
