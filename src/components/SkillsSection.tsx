@@ -148,7 +148,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
 
   const deleteSkill = (index: number) => {
     setEditState((prev: typeof editState) => {
-      const newSkills = prev.skills.filter((_: Skill, i: number) => i !== index);
+      const newSkills = (prev.skills ?? []).filter((_: Skill, i: number) => i !== index);
       return { ...prev, skills: newSkills };
     });
   };
