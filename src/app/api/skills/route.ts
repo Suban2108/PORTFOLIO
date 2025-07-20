@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
         .select('id')
         .eq('category_id', id);
       if (fetchError) throw fetchError;
-      const existingIds = (existingSkills || []).map((s: Skill) => s.id);
+      const existingIds = (existingSkills || []).map((s: { id: number }) => s.id);
       const updatedIds = skills.filter((s: Skill) => s.id).map((s: Skill) => s.id);
       // 2. Delete skills that are not in the updated list
       const toDelete = existingIds.filter((eid: number) => !updatedIds.includes(eid));
