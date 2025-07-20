@@ -741,7 +741,6 @@ export default function SplashCursor({
     }
 
     let dye: DoubleFBO;
-    let velocity: DoubleFBO;
     let divergence: FBO;
     let curl: FBO;
     let pressure: DoubleFBO;
@@ -921,27 +920,6 @@ export default function SplashCursor({
           dyeRes.height,
           rgba!.internalFormat,
           rgba!.format,
-          texType,
-          filtering,
-        );
-      }
-
-      if (!velocity) {
-        velocity = createDoubleFBO(
-          simRes.width,
-          simRes.height,
-          rgSafe.internalFormat,
-          rgSafe.format,
-          texType,
-          filtering,
-        );
-      } else {
-        velocity = resizeDoubleFBO(
-          velocity,
-          simRes.width,
-          simRes.height,
-          rgSafe.internalFormat,
-          rgSafe.format,
           texType,
           filtering,
         );
