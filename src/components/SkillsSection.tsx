@@ -86,6 +86,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
   const saveEdit = async () => {
     const { category, skill, value, level } = editState;
     setModalState(prev => ({ ...prev, saving: true }));
+    if (!category) return;
     if (skill) {
       const updatedSkills = category.skills.map((s: Skill) =>
         s.id === skill.id ? { ...s, name: value, level } : s
