@@ -76,6 +76,7 @@ const ExperienceSection = ({ isAdmin = false }: ExperienceSectionProps) => {
   };
 
   const saveEditExp = async () => {
+    if (!editExp) return;
     setSaving(true);
     await experienceAPI.update(editExp.id, { ...editValues });
     setEditExp(null);
