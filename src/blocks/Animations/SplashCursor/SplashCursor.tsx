@@ -511,7 +511,6 @@ export default function SplashCursor({
       precision highp float;
       precision highp sampler2D;
       varying vec2 vUv;
-      uniform sampler2D uVelocity;
       uniform sampler2D uSource;
       uniform vec2 texelSize;
       uniform vec2 dyeTexelSize;
@@ -533,10 +532,10 @@ export default function SplashCursor({
 
       void main () {
           #ifdef MANUAL_FILTERING
-              vec2 coord = vUv - dt * bilerp(uVelocity, vUv, texelSize).xy * texelSize;
+              vec2 coord = vUv - dt * bilerp(uSource, vUv, texelSize).xy * texelSize;
               vec4 result = bilerp(uSource, coord, dyeTexelSize);
           #else
-              vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;
+              vec2 coord = vUv - dt * texture2D(uSource, vUv).xy * texelSize;
               vec4 result = texture2D(uSource, coord);
           #endif
           float decay = 1.0 + dissipation * dt;
@@ -903,6 +902,9 @@ export default function SplashCursor({
       if (!rgSafe) {
         throw new Error('formatRG and formatRGBA are both null. WebGL format not supported.');
       }
+      if (!r) {
+        throw new Error('formatR is null. WebGL format not supported.');
+      }
 
       if (!dye) {
         dye = createDoubleFBO(
@@ -928,24 +930,24 @@ export default function SplashCursor({
       divergence = createFBO(
         simRes.width,
         simRes.height,
-        r.internalFormat,
-        r.format,
+        r!.internalFormat,
+        r!.format,
         texType,
         gl.NEAREST,
       );
       curl = createFBO(
         simRes.width,
         simRes.height,
-        r.internalFormat,
-        r.format,
+        r!.internalFormat,
+        r!.format,
         texType,
         gl.NEAREST,
       );
       pressure = createDoubleFBO(
         simRes.width,
         simRes.height,
-        r.internalFormat,
-        r.format,
+        r!.internalFormat,
+        r!.format,
         texType,
         gl.NEAREST,
       );
@@ -1033,58 +1035,12 @@ export default function SplashCursor({
       gl.disable(gl.BLEND);
 
       curlProgram.bind();
-      if (curlProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          curlProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
-      if (curlProgram.uniforms.uVelocity) {
-        gl.uniform1i(curlProgram.uniforms.uVelocity, velocity.read.attach(0));
-      }
       blit(curl);
 
       vorticityProgram.bind();
-      if (vorticityProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          vorticityProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
-      if (vorticityProgram.uniforms.uVelocity) {
-        gl.uniform1i(
-          vorticityProgram.uniforms.uVelocity,
-          velocity.read.attach(0),
-        );
-      }
-      if (vorticityProgram.uniforms.uCurl) {
-        gl.uniform1i(vorticityProgram.uniforms.uCurl, curl.attach(1));
-      }
-      if (vorticityProgram.uniforms.curl) {
-        gl.uniform1f(vorticityProgram.uniforms.curl, config.CURL);
-      }
-      if (vorticityProgram.uniforms.dt) {
-        gl.uniform1f(vorticityProgram.uniforms.dt, dt);
-      }
-      blit(velocity.write);
-      velocity.swap();
+      blit(curl);
 
       divergenceProgram.bind();
-      if (divergenceProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          divergenceProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
-      if (divergenceProgram.uniforms.uVelocity) {
-        gl.uniform1i(
-          divergenceProgram.uniforms.uVelocity,
-          velocity.read.attach(0),
-        );
-      }
       blit(divergence);
 
       clearProgram.bind();
@@ -1098,13 +1054,6 @@ export default function SplashCursor({
       pressure.swap();
 
       pressureProgram.bind();
-      if (pressureProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          pressureProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
       if (pressureProgram.uniforms.uDivergence) {
         gl.uniform1i(
           pressureProgram.uniforms.uDivergence,
@@ -1123,90 +1072,15 @@ export default function SplashCursor({
       }
 
       gradienSubtractProgram.bind();
-      if (gradienSubtractProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          gradienSubtractProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
       if (gradienSubtractProgram.uniforms.uPressure) {
         gl.uniform1i(
           gradienSubtractProgram.uniforms.uPressure,
           pressure.read.attach(0),
         );
       }
-      if (gradienSubtractProgram.uniforms.uVelocity) {
-        gl.uniform1i(
-          gradienSubtractProgram.uniforms.uVelocity,
-          velocity.read.attach(1),
-        );
-      }
-      blit(velocity.write);
-      velocity.swap();
+      blit(divergence);
 
       advectionProgram.bind();
-      if (advectionProgram.uniforms.texelSize) {
-        gl.uniform2f(
-          advectionProgram.uniforms.texelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
-      if (
-        !ext.supportLinearFiltering &&
-        advectionProgram.uniforms.dyeTexelSize
-      ) {
-        gl.uniform2f(
-          advectionProgram.uniforms.dyeTexelSize,
-          velocity.texelSizeX,
-          velocity.texelSizeY,
-        );
-      }
-      const velocityId = velocity.read.attach(0);
-      if (advectionProgram.uniforms.uVelocity) {
-        gl.uniform1i(advectionProgram.uniforms.uVelocity, velocityId);
-      }
-      if (advectionProgram.uniforms.uSource) {
-        gl.uniform1i(advectionProgram.uniforms.uSource, velocityId);
-      }
-      if (advectionProgram.uniforms.dt) {
-        gl.uniform1f(advectionProgram.uniforms.dt, dt);
-      }
-      if (advectionProgram.uniforms.dissipation) {
-        gl.uniform1f(
-          advectionProgram.uniforms.dissipation,
-          config.VELOCITY_DISSIPATION,
-        );
-      }
-      blit(velocity.write);
-      velocity.swap();
-
-      if (
-        !ext.supportLinearFiltering &&
-        advectionProgram.uniforms.dyeTexelSize
-      ) {
-        gl.uniform2f(
-          advectionProgram.uniforms.dyeTexelSize,
-          dye.texelSizeX,
-          dye.texelSizeY,
-        );
-      }
-      if (advectionProgram.uniforms.uVelocity) {
-        gl.uniform1i(
-          advectionProgram.uniforms.uVelocity,
-          velocity.read.attach(0),
-        );
-      }
-      if (advectionProgram.uniforms.uSource) {
-        gl.uniform1i(advectionProgram.uniforms.uSource, dye.read.attach(1));
-      }
-      if (advectionProgram.uniforms.dissipation) {
-        gl.uniform1f(
-          advectionProgram.uniforms.dissipation,
-          config.DENSITY_DISSIPATION,
-        );
-      }
       blit(dye.write);
       dye.swap();
     }
@@ -1255,7 +1129,7 @@ export default function SplashCursor({
     ) {
       splatProgram.bind();
       if (splatProgram.uniforms.uTarget) {
-        gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
+        gl.uniform1i(splatProgram.uniforms.uTarget, dye.read.attach(0));
       }
       if (splatProgram.uniforms.aspectRatio) {
         gl.uniform1f(
@@ -1274,15 +1148,6 @@ export default function SplashCursor({
           splatProgram.uniforms.radius,
           correctRadius(config.SPLAT_RADIUS / 100)!,
         );
-      }
-      blit(velocity.write);
-      velocity.swap();
-
-      if (splatProgram.uniforms.uTarget) {
-        gl.uniform1i(splatProgram.uniforms.uTarget, dye.read.attach(0));
-      }
-      if (splatProgram.uniforms.color) {
-        gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b);
       }
       blit(dye.write);
       dye.swap();
