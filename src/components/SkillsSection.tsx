@@ -132,7 +132,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
   // New handlers for unified modal
   const updateSkillName = (index: number, value: string) => {
     setEditState((prev: typeof editState) => {
-      const newSkills = [...prev.skills];
+      const newSkills = [...(prev.skills ?? [])];
       newSkills[index].name = value;
       return { ...prev, skills: newSkills };
     });
@@ -140,7 +140,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
 
   const updateSkillLevel = (index: number, value: number) => {
     setEditState((prev: typeof editState) => {
-      const newSkills = [...prev.skills];
+      const newSkills = [...(prev.skills ?? [])];
       newSkills[index].level = value;
       return { ...prev, skills: newSkills };
     });
