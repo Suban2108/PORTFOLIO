@@ -904,8 +904,8 @@ export default function SplashCursor({
         dye = createDoubleFBO(
           dyeRes.width,
           dyeRes.height,
-          rgba.internalFormat,
-          rgba.format,
+          rgba!.internalFormat,
+          rgba!.format,
           texType,
           filtering,
         );
@@ -914,8 +914,8 @@ export default function SplashCursor({
           dye,
           dyeRes.width,
           dyeRes.height,
-          rgba.internalFormat,
-          rgba.format,
+          rgba!.internalFormat,
+          rgba!.format,
           texType,
           filtering,
         );
