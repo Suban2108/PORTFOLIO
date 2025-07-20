@@ -1,103 +1,135 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import Navigation from '@/components/Navigation';
+import HeroSection from '@/components/HeroSection';
+import AboutSection from '@/components/AboutSection';
+import SkillsSection from '@/components/SkillsSection';
+import ProjectsSection from '@/components/ProjectsSection';
+import ExperienceSection from '@/components/ExperienceSection';
+import ContactSection from '@/components/ContactSection';
+import Footer from '@/components/Footer';
+import LoginForm from '@/components/LoginForm';
+import LeetCodeStatsSection from '@/components/LeetCodeSection';
+import { useRouter, useSearchParams } from 'next/navigation';
+import axios from 'axios';
+import SplashCursor from '../blocks/Animations/SplashCursor/SplashCursor'
+
+const PortfolioContent = () => {
+  const { user, isLoading, login, error } = useAuth();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [leetcodeStats, setLeetcodeStats] = useState<{
+    totalSolved: number;
+    totalQuestions: number;
+    easy: [number, number];
+    medium: [number, number];
+    hard: [number, number];
+  }>({
+    totalSolved: 0,
+    totalQuestions: 3621,
+    easy: [0, 885],
+    medium: [0, 1883],
+    hard: [0, 853],
+  });
+  const [isLoadingLeetCode, setIsLoadingLeetCode] = useState(true);
+
+  const searchParams =
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
+  useEffect(() => {
+    if (searchParams && searchParams.has('edit')) {
+      setShowLogin(true);
+    }
+  }, []);
+
+  // ✅ Fetch LeetCode data
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoadingLeetCode(true);
+      try {
+        const username = 'suban2108'; // <-- Replace with your LeetCode username
+        const res = await axios.get(`/api/leetcode?username=${username}`);
+        const data = res.data;
+        if (data) {
+          setLeetcodeStats({
+            totalSolved: data.totalSolved,
+            totalQuestions: 3621,
+            easy: [data.easy, 885],
+            medium: [data.medium, 1883],
+            hard: [data.hard, 853],
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching LeetCode stats:', err);
+      } finally {
+        setIsLoadingLeetCode(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleLogin = async (email: string, password: string) => {
+    const success = await login(email, password);
+    if (!success) {
+      setLoginError(error || 'Login failed');
+    } else {
+      setLoginError(null);
+      setShowLogin(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showLogin) {
+    return (<>
+    <SplashCursor />
+    <LoginForm onClose={() => setShowLogin(false)} />
+      </>);
+  }
+
+  return (
+    <div className="min-h-screen">
+      <SplashCursor />
+      <Navigation scrollToSection={scrollToSection} onLoginClick={() => setShowLogin(true)} />
+      <HeroSection scrollToSection={scrollToSection} isAdmin={!!user} />
+      <LeetCodeStatsSection
+        totalSolved={leetcodeStats.totalSolved}
+        totalQuestions={leetcodeStats.totalQuestions}
+        easy={leetcodeStats.easy}
+        medium={leetcodeStats.medium}
+        hard={leetcodeStats.hard}
+        isLoading={isLoadingLeetCode}
+      />
+      <AboutSection isAdmin={!!user} />
+      <SkillsSection isAdmin={!!user} />
+      <ProjectsSection isAdmin={!!user} />
+      <ExperienceSection isAdmin={!!user} />
+      <ContactSection isAdmin={!!user} />
+      <Footer />
+    </div>
+  );
+};
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <AuthProvider>
+      <PortfolioContent />
+    </AuthProvider>
   );
 }
