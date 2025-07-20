@@ -4,8 +4,21 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
+// Define Skill type for API
+export interface Skill {
+  id?: number;
+  name: string;
+  level: number;
+}
+
 // Generic API request function using axios
-async function apiRequest(endpoint: string, options: any = {}) {
+type ApiRequestOptions = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  [key: string]: unknown;
+};
+async function apiRequest(endpoint: string, options: ApiRequestOptions = {}) {
   const token = localStorage.getItem('portfolio_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -22,8 +35,9 @@ async function apiRequest(endpoint: string, options: any = {}) {
   try {
     const response = await axios(axiosConfig);
     return response.data;
-  } catch (error: any) {
-    const errData = error.response?.data || { error: error.message };
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { error?: string } }; message?: string };
+    const errData = err.response?.data || { error: err.message };
     // Log the error for debugging
     console.error('API Error:', errData.error || errData);
     throw new Error(errData.error || JSON.stringify(errData));
@@ -56,7 +70,7 @@ export const skillsAPI = {
     return response.data;
   },
 
-  create: async (category: { title: string; skills?: any[] }) => {
+  create: async (category: { title: string; skills?: Skill[] }) => {
     const response = await apiRequest('/skills', {
       method: 'POST',
       body: JSON.stringify(category),
@@ -64,7 +78,7 @@ export const skillsAPI = {
     return response.data;
   },
 
-  update: async (id: number, category: { title?: string; skills?: any[] }) => {
+  update: async (id: number, category: { title?: string; skills?: Skill[] }) => {
     const response = await apiRequest('/skills', {
       method: 'PUT',
       body: JSON.stringify({ id, ...category }),

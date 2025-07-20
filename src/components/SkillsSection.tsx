@@ -29,10 +29,22 @@ const cardBackgrounds = [
   'from-purple-50/80 via-violet-50/80 to-pink-50/80 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-pink-900/20'
 ];
 
+// Define Skill and SkillCategory types
+interface Skill {
+  id?: number;
+  name: string;
+  level: number;
+}
+interface SkillCategory {
+  id: number;
+  title: string;
+  skills: Skill[];
+}
+
 const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
-  const [skillCategories, setSkillCategories] = useState<any[]>([]);
+  const [skillCategories, setSkillCategories] = useState<SkillCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editState, setEditState] = useState<any>({ category: null, skill: null, value: '', level: 0 });
+  const [editState, setEditState] = useState<{ category: SkillCategory | null; skill: Skill | null; value: string; level: number; skills?: Skill[]; categoryTitle?: string }>({ category: null, skill: null, value: '', level: 0 });
   const [modalState, setModalState] = useState({ add: false, saving: false, adding: false });
   const [addValues, setAddValues] = useState({ title: '', skills: '' });
   const [showDelete, setShowDelete] = useState(false);
@@ -63,7 +75,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
     if (skillId) {
       const category = skillCategories.find(c => c.id === id);
       if (!category) return;
-      const updatedSkills = category.skills.filter((s: any) => s.id !== skillId);
+      const updatedSkills = category.skills.filter((s: Skill) => s.id !== skillId);
       await skillsAPI.update(id, { skills: updatedSkills });
     } else {
       await skillsAPI.delete(id);
@@ -75,7 +87,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
     const { category, skill, value, level } = editState;
     setModalState(prev => ({ ...prev, saving: true }));
     if (skill) {
-      const updatedSkills = category.skills.map((s: any) =>
+      const updatedSkills = category.skills.map((s: Skill) =>
         s.id === skill.id ? { ...s, name: value, level } : s
       );
       await skillsAPI.update(category.id, { skills: updatedSkills });
@@ -91,7 +103,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
     setModalState(prev => ({ ...prev, adding: true }));
     // If adding to an existing category, append; otherwise, create new
     const existingCategory = skillCategories.find(
-      (cat: any) => cat.title.trim().toLowerCase() === addValues.title.trim().toLowerCase()
+      (cat: SkillCategory) => cat.title.trim().toLowerCase() === addValues.title.trim().toLowerCase()
     );
     const newSkills = addValues.skills
       .split(',')
@@ -135,7 +147,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
 
   const deleteSkill = (index: number) => {
     setEditState((prev: typeof editState) => {
-      const newSkills = prev.skills.filter((_: any, i: number) => i !== index);
+      const newSkills = prev.skills.filter((_: Skill, i: number) => i !== index);
       return { ...prev, skills: newSkills };
     });
   };
@@ -184,7 +196,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
   const confirmDeleteSkill = async () => {
     if (deleteSkillIdx === null) return;
     setDeletingSkill(true);
-    const newSkills = (editState.skills ?? []).filter((_: any, i: number) => i !== deleteSkillIdx);
+    const newSkills = (editState.skills ?? []).filter((_: Skill, i: number) => i !== deleteSkillIdx);
     await skillsAPI.update(editState.category.id, {
       title: editState.categoryTitle,
       skills: newSkills,
@@ -206,9 +218,9 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
   const confirmDeleteSkillFromCard = async () => {
     if (!deleteCardSkillInfo) return;
     setDeletingCardSkill(true);
-    const category = skillCategories.find((c: any) => c.id === deleteCardSkillInfo.categoryId);
+    const category = skillCategories.find((c: SkillCategory) => c.id === deleteCardSkillInfo.categoryId);
     if (!category) return;
-    const updatedSkills = category.skills.filter((s: any) => s.id !== deleteCardSkillInfo.skillId);
+    const updatedSkills = category.skills.filter((s: Skill) => s.id !== deleteCardSkillInfo.skillId);
     await skillsAPI.update(deleteCardSkillInfo.categoryId, { skills: updatedSkills });
     setDeletingCardSkill(false);
     setDeleteCardSkillInfo(null);
@@ -291,7 +303,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
                   </div>
                   
                   <div className="flex flex-wrap gap-3">
-                    {category.skills.map((skill: any, skillIndex: number) => (
+                    {category.skills.map((skill: Skill, skillIndex: number) => (
                       <motion.div
                         key={skill.id}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -366,7 +378,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
               />
               <div className="mb-4">
                 <div className="font-semibold mb-2">Skills</div>
-                {(editState.skills ?? []).map((skill: any, idx: number) => (
+                {(editState.skills ?? []).map((skill: Skill, idx: number) => (
                   <div key={skill.id || idx} className="flex items-center gap-2 mb-2">
                     <input
                       className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"

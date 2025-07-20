@@ -11,14 +11,26 @@ interface ExperienceSectionProps {
   isAdmin?: boolean;
 }
 
+// Define Experience type
+interface Experience {
+  id: number;
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  iconUrl?: string;
+}
+
 const ExperienceSection = ({ isAdmin = false }: ExperienceSectionProps) => {
-  const [experiences, setExperiences] = useState<any[]>([]);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editExp, setEditExp] = useState<any | null>(null);
-  const [editValues, setEditValues] = useState<any>({});
+  const [editExp, setEditExp] = useState<Experience | null>(null);
+  const [editValues, setEditValues] = useState<Partial<Experience>>({});
   const [saving, setSaving] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [addValues, setAddValues] = useState({
+  const [addValues, setAddValues] = useState<Omit<Experience, 'id'>>({
     company: '', title: '', location: '', startDate: '', endDate: '', description: '', iconUrl: ''
   });
   const [adding, setAdding] = useState(false);
@@ -58,7 +70,7 @@ const ExperienceSection = ({ isAdmin = false }: ExperienceSectionProps) => {
     fetchExperiences();
   };
 
-  const openEditExp = (exp: any) => {
+  const openEditExp = (exp: Experience) => {
     setEditExp(exp);
     setEditValues({ ...exp });
   };
@@ -220,43 +232,43 @@ const ExperienceSection = ({ isAdmin = false }: ExperienceSectionProps) => {
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.company || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, company: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, company: e.target.value }))}
                 placeholder="Company"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.title || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, title: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, title: e.target.value }))}
                 placeholder="Title"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.location || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, location: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, location: e.target.value }))}
                 placeholder="Location"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.startDate || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, startDate: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, startDate: e.target.value }))}
                 placeholder="Start Date"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.endDate || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, endDate: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, endDate: e.target.value }))}
                 placeholder="End Date"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.iconUrl || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, iconUrl: e.target.value }))}
-                placeholder="Icon URL (optional)"
+                onChange={e => setEditValues((v) => ({ ...v, iconUrl: e.target.value }))}
+                placeholder="Icon URL"
               />
               <textarea
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={editValues.description || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, description: e.target.value }))}
+                onChange={e => setEditValues((v) => ({ ...v, description: e.target.value }))}
                 placeholder="Description"
                 rows={3}
               />

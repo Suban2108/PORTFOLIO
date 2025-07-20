@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Define Skill type
+interface Skill {
+  id?: number;
+  name: string;
+  level: number;
+  category_id?: number;
+}
+
 // GET - Fetch all skills (with categories)
 export async function GET() {
   try {
@@ -26,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (catError) throw catError;
     // Insert skills if provided
     if (skills && skills.length > 0) {
-      const skillsToInsert = skills.map((s: any) => ({ ...s, category_id: category.id }));
+      const skillsToInsert = skills.map((s: Skill) => ({ ...s, category_id: category.id }));
       const { error: skillsError } = await supabase.from('skills').insert(skillsToInsert);
       if (skillsError) throw skillsError;
     }
@@ -53,8 +61,8 @@ export async function PUT(request: NextRequest) {
         .select('id')
         .eq('category_id', id);
       if (fetchError) throw fetchError;
-      const existingIds = (existingSkills || []).map((s: any) => s.id);
-      const updatedIds = skills.filter((s: any) => s.id).map((s: any) => s.id);
+      const existingIds = (existingSkills || []).map((s: Skill) => s.id);
+      const updatedIds = skills.filter((s: Skill) => s.id).map((s: Skill) => s.id);
       // 2. Delete skills that are not in the updated list
       const toDelete = existingIds.filter((eid: number) => !updatedIds.includes(eid));
       if (toDelete.length > 0) {

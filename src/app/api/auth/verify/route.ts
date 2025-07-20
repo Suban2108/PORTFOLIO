@@ -3,6 +3,14 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+// Define the expected JWT payload type
+interface UserJwtPayload {
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { token } = await request.json();
@@ -15,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify JWT token
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as UserJwtPayload;
     
     return NextResponse.json({
       success: true,

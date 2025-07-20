@@ -3,6 +3,14 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+// Define JWT payload type
+interface UserJwtPayload {
+  userId: number;
+  email: string;
+  name: string;
+  role: string;
+}
+
 export interface AuthResult {
   success: boolean;
   user?: {
@@ -27,7 +35,7 @@ export async function verifyToken(request: NextRequest): Promise<AuthResult> {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as UserJwtPayload;
     
     return {
       success: true,

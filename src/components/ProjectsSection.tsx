@@ -9,18 +9,38 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import React from 'react';
 
 
+// Define Project type
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  technologies: string[];
+  link: string;
+  github: string;
+}
+// Define modal state types
+interface ProjectModalValues {
+  title: string;
+  description: string;
+  image: string;
+  technologies: string;
+  link: string;
+  github: string;
+}
+
 interface ProjectsSectionProps {
   isAdmin?: boolean;
 }
 
 const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editProject, setEditProject] = useState<any | null>(null);
-  const [editValues, setEditValues] = useState<any>({});
+  const [editProject, setEditProject] = useState<Project | null>(null);
+  const [editValues, setEditValues] = useState<ProjectModalValues>({ title: '', description: '', image: '', technologies: '', link: '', github: '' });
   const [saving, setSaving] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [addValues, setAddValues] = useState({ title: '', description: '', image: '', technologies: '', link: '', github: '' });
+  const [addValues, setAddValues] = useState<ProjectModalValues>({ title: '', description: '', image: '', technologies: '', link: '', github: '' });
   const [adding, setAdding] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -55,7 +75,7 @@ const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
   };
 
   // Edit Project Modal
-  const openEditProject = (project: any) => {
+  const openEditProject = (project: Project) => {
     setEditProject(project);
     setEditValues({
       title: project.title,
@@ -67,14 +87,15 @@ const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
     });
   };
   const saveEditProject = async () => {
+    if (!editProject) return;
     setSaving(true);
     await projectsAPI.update(editProject.id, {
       ...editProject,
       ...editValues,
-      technologies: editValues.technologies.split(',').map((t: string) => t.trim()),
+      technologies: editValues.technologies.split(',').map((t: string) => t.trim()).filter(Boolean),
     });
     setEditProject(null);
-    setEditValues({});
+    setEditValues({ title: '', description: '', image: '', technologies: '', link: '', github: '' });
     setSaving(false);
     fetchProjects();
   };
@@ -85,7 +106,7 @@ const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
       title: addValues.title,
       description: addValues.description,
       image: addValues.image,
-      technologies: addValues.technologies.split(',').map((t: string) => t.trim()),
+      technologies: addValues.technologies.split(',').map((t: string) => t.trim()).filter(Boolean),
       link: addValues.link,
       github: addValues.github,
     });
@@ -147,9 +168,9 @@ const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
                   <div className="text-center space-y-2">
                       {
                         (() => {
-                          const icon = icons[(project as any).id];
+                          const icon = icons[project.id];
                           if (icon && typeof icon.type === 'function') {
-                            const iconElement = icon as React.ReactElement<any, any>;
+                            const iconElement = icon as React.ReactElement<{ className?: string }>;
                             const existingClass = iconElement.props.className || '';
                             return React.cloneElement(iconElement, { className: `${existingClass} mx-auto text-blue-500`.trim() });
                           } else if (icon) {
@@ -258,39 +279,39 @@ const ProjectsSection = ({ isAdmin = false }: ProjectsSectionProps) => {
               <Dialog.Title className="text-lg font-bold mb-4">Edit Project</Dialog.Title>
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.title || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, title: e.target.value }))}
+                value={editValues.title}
+                onChange={e => setEditValues((v) => ({ ...v, title: e.target.value }))}
                 placeholder="Project Title"
               />
               <textarea
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.description || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, description: e.target.value }))}
+                value={editValues.description}
+                onChange={e => setEditValues((v) => ({ ...v, description: e.target.value }))}
                 placeholder="Description"
                 rows={3}
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.image || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, image: e.target.value }))}
+                value={editValues.image}
+                onChange={e => setEditValues((v) => ({ ...v, image: e.target.value }))}
                 placeholder="Image URL"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.technologies || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, technologies: e.target.value }))}
+                value={editValues.technologies}
+                onChange={e => setEditValues((v) => ({ ...v, technologies: e.target.value }))}
                 placeholder="Technologies (comma separated)"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.link || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, link: e.target.value }))}
+                value={editValues.link}
+                onChange={e => setEditValues((v) => ({ ...v, link: e.target.value }))}
                 placeholder="Live Link"
               />
               <input
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                value={editValues.github || ''}
-                onChange={e => setEditValues((v: any) => ({ ...v, github: e.target.value }))}
+                value={editValues.github}
+                onChange={e => setEditValues((v) => ({ ...v, github: e.target.value }))}
                 placeholder="GitHub Link"
               />
               <div className="flex justify-end space-x-2">
