@@ -196,7 +196,7 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
     setShowDeleteSkill(true);
   };
   const confirmDeleteSkill = async () => {
-    if (deleteSkillIdx === null) return;
+    if (deleteSkillIdx === null || !editState.category) return;
     setDeletingSkill(true);
     const newSkills = (editState.skills ?? []).filter((_: Skill, i: number) => i !== deleteSkillIdx);
     await skillsAPI.update(editState.category.id, {
@@ -325,12 +325,14 @@ const SkillsSection = ({ isAdmin = false }: SkillsSectionProps) => {
                               >
                                 <Edit size={12} />
                               </button>
-                              <button
-                                onClick={() => handleDeleteSkillFromCard(category.id, skill.id)}
-                                className="p-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
-                              >
-                                <Trash2 size={12} />
-                              </button>
+                              {skill.id !== undefined && (
+                                <button
+                                  onClick={() => handleDeleteSkillFromCard(category.id, skill.id!)}
+                                  className="p-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
