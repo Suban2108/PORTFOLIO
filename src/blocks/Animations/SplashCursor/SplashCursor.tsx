@@ -896,6 +896,10 @@ export default function SplashCursor({
       const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST;
       gl.disable(gl.BLEND);
 
+      if (!rgba) {
+        throw new Error('formatRGBA is null. WebGL format not supported.');
+      }
+
       if (!dye) {
         dye = createDoubleFBO(
           dyeRes.width,
